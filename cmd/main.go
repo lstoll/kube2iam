@@ -12,6 +12,8 @@ import (
 	"github.com/jtblin/kube2iam/version"
 )
 
+var roleAliases []string
+
 // addFlags adds the command line flags.
 func addFlags(s *server.Server, fs *pflag.FlagSet) {
 	fs.StringVar(&s.APIServer, "api-server", s.APIServer, "Endpoint for the api server")
@@ -21,6 +23,7 @@ func addFlags(s *server.Server, fs *pflag.FlagSet) {
 	fs.BoolVar(&s.Debug, "debug", s.Debug, "Enable debug features")
 	fs.StringVar(&s.DefaultIAMRole, "default-role", s.DefaultIAMRole, "Fallback role to use when annotation is not set")
 	fs.StringVar(&s.IAMRoleKey, "iam-role-key", s.IAMRoleKey, "Pod annotation key used to retrieve the IAM role")
+	fs.StringArrayVar(&roleAliases, "role-alias", []string{}, "List of role aliases, format \"<alias>,<to>\". Repeat flag for multiples")
 	fs.BoolVar(&s.Insecure, "insecure", false, "Kubernetes server should be accessed without verifying the TLS. Testing only")
 	fs.StringVar(&s.MetadataAddress, "metadata-addr", s.MetadataAddress, "Address for the ec2 metadata")
 	fs.BoolVar(&s.AddIPTablesRule, "iptables", false, "Add iptables rule (also requires --host-ip)")
@@ -93,6 +96,16 @@ func main() {
 			log.Fatalf("%s", err)
 		}
 	}
+
+	ras := make(map[string]string)
+	for _, a := range roleAliases {
+		sp := strings.Split(a, ",")
+		if len(sp) != 2 {
+			log.Fatalf("Alias entry %q is invalid, needs to be comma separated alias,target", a)
+		}
+		ras[sp[0]] = sp[1]
+	}
+	s.RoleAliases = ras
 
 	if err := s.Run(s.APIServer, s.APIToken, s.Insecure); err != nil {
 		log.Fatalf("%s", err)

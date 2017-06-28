@@ -40,6 +40,7 @@ type Server struct {
 	BaseRoleARN             string
 	DefaultIAMRole          string
 	IAMRoleKey              string
+	RoleAliases             map[string]string
 	MetadataAddress         string
 	HostInterface           string
 	HostIP                  string
@@ -277,7 +278,7 @@ func (s *Server) Run(host, token string, insecure bool) error {
 	}
 	s.k8s = k
 	s.iam = iam.NewClient(s.BaseRoleARN)
-	model := store.NewStore(s.IAMRoleKey, s.DefaultIAMRole, s.NamespaceRestriction, s.NamespaceKey, s.iam)
+	model := store.NewStore(s.IAMRoleKey, s.DefaultIAMRole, s.RoleAliases, s.NamespaceRestriction, s.NamespaceKey, s.iam)
 	s.store = model
 	s.k8s.WatchForPods(kube2iam.NewPodHandler(model))
 	s.k8s.WatchForNamespaces(kube2iam.NewNamespaceHandler(model))
@@ -307,5 +308,6 @@ func NewServer() *Server {
 		BackoffMaxInterval:    defaultMaxInterval,
 		MetadataAddress:       defaultMetadataAddress,
 		NamespaceKey:          defaultNamespaceKey,
+		RoleAliases:           make(map[string]string),
 	}
 }

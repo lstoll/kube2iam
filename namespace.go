@@ -36,6 +36,11 @@ func (h *NamespaceHandler) OnAdd(obj interface{}) {
 	roles := h.getRoleAnnotation(ns)
 	for _, role := range roles {
 		logger.WithField("ns.role", role).Info("Add role to namespace")
+		// Check if there's an alias entry, if so use that
+		ar, ok := h.storage.RoleAliases[role]
+		if ok {
+			role = ar
+		}
 		h.storage.AddRoleToNamespace(ns.GetName(), role)
 	}
 }

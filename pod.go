@@ -40,6 +40,11 @@ func (p *PodHandler) OnAdd(obj interface{}) {
 	if pod.Status.PodIP != "" {
 		if role, ok := pod.GetAnnotations()[p.storage.IamRoleKey]; ok {
 			logger.Info("Adding pod to store")
+			// Check if there's an alias entry, if so use that
+			ar, ok := p.storage.RoleAliases[role]
+			if ok {
+				role = ar
+			}
 			p.storage.AddRoleToIP(pod, role)
 		}
 	}

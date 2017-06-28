@@ -15,6 +15,7 @@ type Store struct {
 	defaultRole          string
 	IamRoleKey           string
 	NamespaceKey         string
+	RoleAliases          map[string]string
 	namespaceRestriction bool
 	mutex                sync.RWMutex
 	rolesByIP            map[string]string
@@ -156,12 +157,13 @@ func (s *Store) DumpNamespaceByIP() map[string]string {
 }
 
 // NewStore returns a new Store for iam roles.
-func NewStore(key string, defaultRole string, namespaceRestriction bool, namespaceKey string, iamInstance *iam.Client) *Store {
+func NewStore(key string, defaultRole string, roleAliases map[string]string, namespaceRestriction bool, namespaceKey string, iamInstance *iam.Client) *Store {
 	return &Store{
 		defaultRole:          defaultRole,
 		IamRoleKey:           key,
 		NamespaceKey:         namespaceKey,
 		namespaceRestriction: namespaceRestriction,
+		RoleAliases:          roleAliases,
 		rolesByIP:            make(map[string]string),
 		rolesByNamespace:     make(map[string][]string),
 		namespaceByIP:        make(map[string]string),
